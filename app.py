@@ -158,9 +158,3 @@ def test_crude():
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
 
-@app.route("/debug/crude", methods=["POST"])
-def debug_crude():
-    raw = request.get_data(as_text=True)
-    print(f"RAW PAYLOAD: {raw}")
-    send_telegram(f"DEBUG RAW:\n<code>{raw}</code>")
-    return jsonify({"status": "ok"}), 200
