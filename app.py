@@ -64,7 +64,7 @@ def build_message(d):
     chg_icon = "📈" if not str(change).startswith("-") else "📉"
 
     return (
-        f"📊 <b>{ticker} 15M Signal</b>  |  {now}\n"
+        f"📊 <b>{ticker}  Signal</b>  |  {now}\n"
         f"━━━━━━━━━━━━━━━\n"
         f"💰 Close     : <b>{currency}{close_p}</b>\n"
         f"{chg_icon} Change    : <b>{change} ({changepct}%)</b>\n"
@@ -76,7 +76,6 @@ def build_message(d):
         f"━━━━━━━━━━━━━━━\n"
         f"ADX  : {adx}  |  Chop : {chop}\n"
         f"ATR  : {atr}  |  Lots : {lots}\n"
-        f"Risk/lot : {currency}{rpl}  |  SL : {currency}{sl}\n"
         f"Prev close : {prevclose}\n"
         f"━━━━━━━━━━━━━━━"
     )
