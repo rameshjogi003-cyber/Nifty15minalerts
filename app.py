@@ -74,8 +74,9 @@ def build_message(d):
         f"⚡ Intensity  : <b>{intensity}</b>\n"
         f"{icon} Action    : <b>{action}</b>\n"
         f"━━━━━━━━━━━━━━━\n"
-        f"ADX  : {adx}  |  Chop : {chop}\n"
-        f"ATR  : {atr}  |  Lots : {lots}\n"
+        f"ADX  : {adx} \n"
+        f"Chop : {chop}\n"
+        f"ATR  : {atr} \n"
         f"Prev close : {prevclose}\n"
         f"━━━━━━━━━━━━━━━"
     )
