@@ -25,6 +25,9 @@ def send_telegram(text):
 
 # ── NIFTY MESSAGE ────────────────────────────────────────
 def build_nifty_message(d):
+    close_p   = d.get("close",     "N/A")
+    change    = d.get("change",    "N/A")
+    changepct = d.get("changepct", "N/A")
     market    = d.get("market",    "N/A")
     direction = d.get("direction", "N/A")
     intensity = d.get("intensity", "N/A")
@@ -33,6 +36,8 @@ def build_nifty_message(d):
     chop      = d.get("chop",      "N/A")
     atr       = d.get("atr",       "N/A")
     lots      = d.get("lots",      "N/A")
+    rpl       = d.get("riskperlot","N/A")
+    sl        = d.get("sl",        "N/A")
     prevclose = d.get("prevclose", "N/A")
 
     ist = pytz.timezone("Asia/Kolkata")
@@ -42,9 +47,13 @@ def build_nifty_message(d):
     icon  = icons.get(action, "⚪")
     regime_icons = {"TRENDING": "✅", "CHOPPY": "⚠️", "NEUTRAL": "➖"}
     regime_icon  = regime_icons.get(market, "")
+    chg_icon = "📈" if not str(change).startswith("-") else "📉"
 
     return (
-        f"📊 <b>NIFTY 15M Signal</b>  |  {now}\n"
+        f"📊 <b>NIFTY Signal</b>  |  {now}\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"💰 Close     : <b>₹{close_p}</b>\n"
+        f"{chg_icon} Change    : <b>{change} ({changepct}%)</b>\n"
         f"━━━━━━━━━━━━━━━\n"
         f"{regime_icon} Market    : <b>{market}</b>\n"
         f"🧭 Direction : <b>{direction}</b>\n"
@@ -53,10 +62,10 @@ def build_nifty_message(d):
         f"━━━━━━━━━━━━━━━\n"
         f"ADX  : {adx}  |  Chop : {chop}\n"
         f"ATR  : {atr} pts  |  Lots : {lots}\n"
+        f"Risk/lot : ₹{rpl}  |  SL : ₹{sl}\n"
         f"Prev close : {prevclose}\n"
         f"━━━━━━━━━━━━━━━"
     )
-
 
 # ── WTI CRUDE MESSAGE ────────────────────────────────────
 def build_crude_message(d):
