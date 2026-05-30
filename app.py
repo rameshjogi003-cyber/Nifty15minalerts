@@ -123,6 +123,95 @@ def test_crude():
     send_telegram(build_crude_message(sample))
     return jsonify({"status": "crude test sent"}), 200
 
+# ── ADD THIS BLOCK to your existing app.py ──────────────
+# Paste it after the existing /webhook/crude route
+
+def build_intraday_message(d):
+    ticker    = d.get("ticker",     "NIFTY")
+    close_p   = d.get("close",      "N/A")
+    action    = d.get("action",     "N/A")
+    direction = d.get("direction",  "N/A")
+    intensity = d.get("intensity",  "N/A")
+    orb       = d.get("orb",        "N/A")
+    orb_h     = d.get("orbhigh",    "N/A")
+    orb_l     = d.get("orblow",     "N/A")
+    vwap      = d.get("vwap",       "N/A")
+    adx       = d.get("adx",        "N/A")
+    rsi       = d.get("rsi",        "N/A")
+    score     = d.get("score",      "N/A")
+    lots      = d.get("lots",       "N/A")
+    rpl       = d.get("riskperlot", "N/A")
+    sl        = d.get("sl",         "N/A")
+
+    ist = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(ist).strftime("%H:%M IST, %d %b %Y")
+
+    action_icons = {
+        "BUY CE": "🟢", "BUY PE": "🔴",
+        "NO ENTRY — FLAT": "⚪", "WAIT": "⚪",
+        "WAIT — OR FORMING": "🟡",
+        "TIME OVER — EXIT": "🔔",
+        "MARKET CLOSED": "🔒"
+    }
+    icon = action_icons.get(action, "⚪")
+
+    orb_icon = "🚀" if orb == "BULL BREAK" else "💥" if orb == "BEAR BREAK" else "📦"
+
+    return (
+        f"⚡ <b>{ticker} INTRADAY 5M</b>  |  {now}\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"💰 Close     : <b>₹{close_p}</b>\n"
+        f"{orb_icon} ORB       : <b>{orb}</b>\n"
+        f"   H: {orb_h}  |  L: {orb_l}\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"🧭 Direction : <b>{direction}</b>\n"
+        f"⚡ Intensity  : <b>{intensity}</b>\n"
+        f"{icon} Action    : <b>{action}</b>\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"VWAP : {vwap}  |  ADX : {adx}\n"
+        f"RSI  : {rsi}   |  Score : {score}\n"
+        f"Lots : {lots}  |  Risk/lot : ₹{rpl}\n"
+        f"SL   : ₹{sl}\n"
+        f"━━━━━━━━━━━━━━━"
+    )
+
+
+@app.route("/webhook/intraday", methods=["POST"])
+def webhook_intraday():
+    try:
+        data = request.get_json(force=True)
+        print(f"Intraday payload: {data}")
+        send_telegram(build_intraday_message(data))
+        return jsonify({"status": "ok"}), 200
+    except Exception as e:
+        print(f"Intraday error: {e}")
+        return jsonify({"error": str(e)}), 400
+
+
+@app.route("/test/intraday", methods=["GET"])
+def test_intraday():
+    sample = {
+        "ticker":     "NIFTY",
+        "close":      "24385.50",
+        "action":     "BUY CE",
+        "direction":  "BULLISH",
+        "intensity":  "STRONG",
+        "orb":        "BULL BREAK",
+        "orbhigh":    "24350.0",
+        "orblow":     "24280.0",
+        "vwap":       "24310.5",
+        "adx":        "28.4",
+        "rsi":        "62.3",
+        "score":      "7B/2Be",
+        "lots":       "2",
+        "riskperlot": "4550",
+        "sl":         "6000"
+    }
+    send_telegram(build_intraday_message(sample))
+    return jsonify({"status": "intraday test sent"}), 200
+# ── END INTRADAY BLOCK ───────────────────────────────────
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
