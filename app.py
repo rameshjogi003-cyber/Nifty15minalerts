@@ -28,6 +28,9 @@ def send_telegram(text):
 #  Handles Nifty 5M signals with ORB, VWAP, Score, Trail SL
 # ════════════════════════════════════════════════════════════════
 def build_intraday_message(d):
+    # TradingView Settings to change per instrument:
+    #   Nifty:      Entry Start=9:30  Exit By=14:15  Session End=15:30
+    #   Crude/Gold: Entry Start=9:30  Exit By=23:00  Session End=23:30
     ticker     = d.get("ticker",      "NIFTY")
     close_p    = d.get("close",       "N/A")
     action     = d.get("action",      "N/A")
@@ -98,11 +101,12 @@ def build_intraday_message(d):
     # ── VWAP position display ─────────────────────────────────────
     vwap_display = f"{vwap} ({vwap_pos})" if vwap_pos not in ("N/A", "") else vwap
 
-    # ── Trail SL block (only shown when active or just hit) ───────
+    # ── Trail SL block (only shown when a trade is active) ─────────
+    # trail_peak = "NA" means no active trade (Pine sends "NA" string when inactive)
     trail_block = ""
     if trail_hit == "YES — EXIT NOW":
         trail_block = f"🛑 TRAIL SL HIT — EXIT NOW\n"
-    elif trail_peak != "N/A" and trail_dist != "N/A":
+    elif trail_peak not in ("N/A", "NA", "", None) and trail_dist not in ("N/A", "NA", "", None):
         trail_block = f"📍 Trail SL : {trail_dist} pts from peak {trail_peak}\n"
 
     return (
