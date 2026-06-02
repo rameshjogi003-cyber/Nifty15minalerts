@@ -110,7 +110,7 @@ def build_intraday_message(d):
         trail_block = f"📍 Trail SL : {trail_dist} pts from peak {trail_peak}\n"
 
     return (
-        f"⚡ <b>{ticker} INTRADAY 5M</b>  |  {now}\n"
+        f"⚡ <b>{ticker} INTRADAY</b>  |  {now}\n"
         f"━━━━━━━━━━━━━━━\n"
         f"💰 Close     : <b>₹{close_p}</b>\n"
         f"{orb_icon} ORB       : <b>{orb}</b>\n"
