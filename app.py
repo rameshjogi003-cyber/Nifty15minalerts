@@ -111,15 +111,15 @@ def build_intraday_message(d):
 
     return (
         f"⚡ <b>{ticker} INTRADAY</b>  |  {now}\n"
-        f"━━━━━━━━\n"
+        f"━━━━━\n"
         f"💰 Close     : <b>₹{close_p}</b>\n"
         f"{orb_icon} ORB       : <b>{orb}</b>\n"
         f"   H: {orb_h}  |  L: {orb_l}\n"
-        f"━━━━━━━━\n"
+        f"━━━━\n"
         f"🧭 Direction : <b>{direction}</b>\n"
         f"⚡ Intensity  : <b>{intensity}</b>\n"
         f"{icon} Action    : <b>{action}</b>\n"
-        f"━━━━━━━━\n"
+        f"━━━━━\n"
         f"VWAP : {vwap_display}  \n"
          f"ADX : {adx_str}\n"
         f"RSI  : {rsi} \n"
@@ -128,7 +128,7 @@ def build_intraday_message(d):
         f"Lots : {lots}  |  Risk/lot : ₹{rpl}\n"
         f"SL   : ₹{sl}\n"
         f"{trail_block}"
-        f"━━━━━━━━━"
+        f"━━━━"
     )
 
 
