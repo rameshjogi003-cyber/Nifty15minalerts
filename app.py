@@ -70,7 +70,7 @@ def build_intraday_message(d):
     ist = pytz.timezone("Asia/Kolkata")
     now = datetime.now(ist).strftime("%H:%M IST, %d %b %Y")
 
-    # ── Action icon ──────────────────────────────────────────────
+    # ── Action icon ───────────────────────
     action_icons = {
         "BUY CE":               "🟢",
         "BUY PE":               "🔴",
@@ -85,20 +85,20 @@ def build_intraday_message(d):
     }
     icon = action_icons.get(action, "⚪")
 
-    # ── ORB icon ─────────────────────────────────────────────────
+    # ── ORB icon ──────────────────────────
     orb_icon = "🚀" if orb == "BULL BREAK" else "💥" if orb == "BEAR BREAK" else "📦"
 
-    # ── ADX display with rising arrow ────────────────────────────
+    # ── ADX display with rising arrow ──────
     adx_str = f"{adx} {'▲' if adx_rising == 'YES' else '▼' if adx_rising == 'NO' else ''}"
 
-    # ── Chop regime label ─────────────────────────────────────────
+    # ── Chop regime label ────────────────
     try:
         chop_val = float(chop)
         chop_label = "TRENDING" if chop_val < 38.2 else "CHOPPY" if chop_val > 61.8 else "MIXED"
     except (ValueError, TypeError):
         chop_label = "N/A"
 
-    # ── VWAP position display ─────────────────────────────────────
+    # ── VWAP position display ────────────────
     vwap_display = f"{vwap} ({vwap_pos})" if vwap_pos not in ("N/A", "") else vwap
 
     # ── Trail SL block (only shown when a trade is active) ─────────
@@ -111,15 +111,15 @@ def build_intraday_message(d):
 
     return (
         f"⚡ <b>{ticker} INTRADAY</b>  |  {now}\n"
-        f"━━━━━━━━━━━━━━━\n"
+        f"━━━━━━━━\n"
         f"💰 Close     : <b>₹{close_p}</b>\n"
         f"{orb_icon} ORB       : <b>{orb}</b>\n"
         f"   H: {orb_h}  |  L: {orb_l}\n"
-        f"━━━━━━━━━━━━━━━\n"
+        f"━━━━━━━━\n"
         f"🧭 Direction : <b>{direction}</b>\n"
         f"⚡ Intensity  : <b>{intensity}</b>\n"
         f"{icon} Action    : <b>{action}</b>\n"
-        f"━━━━━━━━━━━━━━━\n"
+        f"━━━━━━━━\n"
         f"VWAP : {vwap_display}  \n"
          f"ADX : {adx_str}\n"
         f"RSI  : {rsi} \n"
@@ -128,7 +128,7 @@ def build_intraday_message(d):
         f"Lots : {lots}  |  Risk/lot : ₹{rpl}\n"
         f"SL   : ₹{sl}\n"
         f"{trail_block}"
-        f"━━━━━━━━━━━━━━━"
+        f"━━━━━━━━━"
     )
 
 
