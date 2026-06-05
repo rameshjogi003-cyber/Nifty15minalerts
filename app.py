@@ -125,11 +125,7 @@ def build_intraday_message(d):
         f"RSI  : {rsi} \n"
          f"Score : {score}\n"
         f"Chop : {chop} ({chop_label})\n"
-        f"Lots : {lots}  |  Risk/lot : ₹{rpl}\n"
-        f"SL   : ₹{sl}\n"
-        f"{trail_block}"
-        f"━━━━"
-    )
+            )
 
 
 @app.route("/webhook/intraday", methods=["POST"])
