@@ -83,6 +83,13 @@ def build_intraday_message(d):
     vol_factor    = d.get("volatility_factor",  "N/A")
     atr_ratio     = d.get("atr_ratio",          "N/A")
     trail_hit     = d.get("trail_hit",          "NO")    # "YES — EXIT" or "NO"
+    # ── v5 dynamic-stop fields ──
+    stop_line     = d.get("stop_line",          "N/A")
+    stop_dist     = d.get("stop_dist",          "N/A")
+    breakeven     = d.get("breakeven",          "N/A")   # ARMED / NO / NA
+    stop_reason   = d.get("stop_reason",        "N/A")   # TRAIL / BREAKEVEN+
+    prem_risk     = d.get("prem_risk_per_lot",  "N/A")
+    chop_factor   = d.get("chop_factor",        "N/A")
 
     ist = pytz.timezone("Asia/Kolkata")
     now = datetime.now(ist).strftime("%H:%M IST, %d %b %Y")
@@ -112,19 +119,24 @@ def build_intraday_message(d):
 
     vwap_display = f"{vwap} ({vwap_pos})" if is_active(vwap_pos) else f"{vwap}"
 
-    # ── Trail SL block — now LIVE ──────────────────────────────
+    # ── Dynamic Stop block (v5) — LIVE ─────────────────────────
     # Pine sends trail_hit = "YES — EXIT" on the exit bar.
     if str(trail_hit).startswith("YES"):
-        trail_block = "🛑 <b>TRAIL SL HIT — EXIT ALL LOTS NOW</b>\n"
-    elif is_active(trail_locked) and is_active(trail_peak):
-        # Active trade: show the locked trailing distance and live volatility mult
-        vf = f" | vol ×{vol_factor}" if is_active(vol_factor) else ""
-        trail_block = (f"📍 Trail SL : <b>{trail_locked} pts</b> "
-                       f"locked from peak {trail_peak}{vf}\n")
+        why = f" ({stop_reason})" if is_active(stop_reason) else ""
+        trail_block = f"🛑 <b>STOP HIT{why} — EXIT ALL LOTS NOW</b>\n"
+    elif is_active(stop_line) and is_active(trail_peak):
+        # Active trade: show stop level, distance, breakeven flag, adapt factors
+        be = " 🔒BE" if str(breakeven).upper() == "ARMED" else ""
+        vf = f" vol×{vol_factor}" if is_active(vol_factor) else ""
+        cf = f" chop×{chop_factor}" if is_active(chop_factor) else ""
+        dist = f"{stop_dist}" if is_active(stop_dist) else trail_locked
+        risk = f" | ≈{cur}{prem_risk}/lot" if is_active(prem_risk) else ""
+        trail_block = (f"📍 Stop @ <b>{stop_line}</b>{be}  (dist {dist} pts{vf}{cf})\n"
+                       f"   peak {trail_peak}{risk}\n")
     elif is_active(trail_current):
-        # No active trade: show what the stop WOULD be on entry
+        # No active trade: what the stop distance WOULD be on entry
         floor = f" (floor {trail_floor})" if is_active(trail_floor) else ""
-        trail_block = f"📐 Trail (idle): {trail_current} pts{floor}\n"
+        trail_block = f"📐 Stop (idle): {trail_current} pts{floor}\n"
     else:
         trail_block = ""
 
