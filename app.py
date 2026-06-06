@@ -23,30 +23,19 @@ def send_telegram(text):
     print(f"Telegram: {response.status_code} — {response.text}")
 
 
-# ════════════════════════════════════════════════════════════════
-#  HELPERS — shared across all instruments
-# ════════════════════════════════════════════════════════════════
 INDIAN_TOKENS = ("NIFTY", "BANKNIFTY", "FINNIFTY", "SENSEX", "BANKEX",
                  "MCX", "CRUDEOIL", "GOLD", "GOLDM", "SILVER", "SILVERM",
                  "NSE", "BSE", "NATURALGAS", "COPPER", "ZINC")
 
 
 def currency_for(ticker):
-    """₹ for Indian instruments, $ otherwise (bitcoin, global futures…)."""
     return "₹" if any(tok in ticker.upper() for tok in INDIAN_TOKENS) else "$"
 
 
 def is_active(value):
-    """Pine sends 'NA' (string) when a field has no live value."""
     return value not in ("N/A", "NA", "", None)
 
 
-# ════════════════════════════════════════════════════════════════
-#  INTRADAY OPTIONS MESSAGE  (matches the v4 Pine alert payload)
-#  Works for ANY instrument: Nifty, Sensex, Crude, Gold, Silver,
-#  Bitcoin, etc. — currency and action vocabulary auto-adapt.
-#  Route: /webhook/intraday
-# ════════════════════════════════════════════════════════════════
 def build_intraday_message(d):
     ticker     = d.get("ticker",      "UNKNOWN")
     cur        = currency_for(ticker)
@@ -87,6 +76,7 @@ def build_intraday_message(d):
     prem_risk     = d.get("prem_risk_per_lot",  "N/A")
     chop_factor   = d.get("chop_factor",        "N/A")
 
+    # EMA fields — replace < and > with unicode lookalikes to avoid Telegram HTML parse errors
     ema_rel  = d.get("ema_rel", "N/A").replace("<", "﹤").replace(">", "﹥")
     ema9_v   = d.get("ema9",    "N/A")
     ema24_v  = d.get("ema24",   "N/A")
@@ -118,11 +108,13 @@ def build_intraday_message(d):
 
     vwap_display = f"{vwap} ({vwap_pos})" if is_active(vwap_pos) else f"{vwap}"
 
-ema_icon = ("🟢" if ema_rel == "CMP>E9>E24>E39"
-            else "🔴" if ema_rel == "CMP<E9<E24<E39"
-            else "🟠" if "CMP>" in ema_rel
-            else "🟡")
-        if str(trail_hit).startswith("YES"):
+    # Emoji based on already-escaped ema_rel (uses ﹥ ﹤ now)
+    ema_icon = ("🟢" if "CMP﹥E9﹥E24﹥E39" == ema_rel
+                else "🔴" if "CMP﹤E9﹤E24﹤E39" == ema_rel
+                else "🟠" if ema_rel.startswith("CMP﹥")
+                else "🟡")
+
+    if str(trail_hit).startswith("YES"):
         why = f" ({stop_reason})" if is_active(stop_reason) else ""
         trail_block = f"🛑 <b>STOP HIT{why} — EXIT ALL LOTS NOW</b>\n"
     elif is_active(stop_line) and is_active(trail_peak):
@@ -156,7 +148,7 @@ ema_icon = ("🟢" if ema_rel == "CMP>E9>E24>E39"
         f"Score: {score}\n"
         f"Chop : {chop_disp}\n"
         f"ATR  : {atr}\n"
-       f"{ema_icon} EMA  : {ema_rel}\n"
+        f"{ema_icon} EMA  : {ema_rel}\n"
         f"   E9:{ema9_v} | E24:{ema24_v} | E39:{ema39_v}\n"
         f"━━━━━\n"
         f"{trail_block}"
@@ -164,6 +156,8 @@ ema_icon = ("🟢" if ema_rel == "CMP>E9>E24>E39"
         f"🛡 SL   : {cur}{sl}\n"
         f"━━━━━"
     )
+
+
 @app.route("/webhook/intraday", methods=["POST"])
 def webhook_intraday():
     try:
@@ -178,7 +172,6 @@ def webhook_intraday():
 
 @app.route("/test/intraday", methods=["GET"])
 def test_intraday():
-    # Mirrors the EXACT keys the Pine v4 alert emits, incl. trail_* fields.
     sample = {
         "ticker": "NIFTY", "close": "23335.85",
         "action": "TRAIL SL — EXIT", "direction": "BEARISH",
@@ -192,15 +185,21 @@ def test_intraday():
         "trail_dist_locked": "42", "trail_dist_current": "38.5",
         "trail_min_floor": "30", "trail_peak": "23300",
         "trail_hit": "YES — EXIT",
+        "ema_rel": "CMP<E9<E24<E39",
+        "ema9": "23350.1", "ema24": "23400.5", "ema39": "23450.2",
     }
     send_telegram(build_intraday_message(sample))
     return jsonify({"status": "intraday test sent"}), 200
 
 
-# ════════════════════════════════════════════════════════════════
-#  GENERIC SIGNAL MESSAGE  (legacy scripts) — unchanged behaviour,
-#  but currency is now auto-detected per instrument.
-# ════════════════════════════════════════════════════════════════
+@app.route("/webhook/debug", methods=["POST"])
+def webhook_debug():
+    data = request.get_json(force=True)
+    print(f"RAW PAYLOAD: {data}")
+    send_telegram(f"<b>DEBUG PAYLOAD:</b>\n<code>{str(data)}</code>")
+    return jsonify({"status": "ok"}), 200
+
+
 def build_message(d):
     ticker    = d.get("ticker",    "UNKNOWN")
     cur       = currency_for(ticker)
