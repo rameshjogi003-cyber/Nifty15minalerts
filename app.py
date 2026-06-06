@@ -87,7 +87,7 @@ def build_intraday_message(d):
     prem_risk     = d.get("prem_risk_per_lot",  "N/A")
     chop_factor   = d.get("chop_factor",        "N/A")
 
-    ema_rel  = d.get("ema_rel", "N/A")
+    ema_rel  = d.get("ema_rel", "N/A").replace("<", "﹤").replace(">", "﹥")
     ema9_v   = d.get("ema9",    "N/A")
     ema24_v  = d.get("ema24",   "N/A")
     ema39_v  = d.get("ema39",   "N/A")
