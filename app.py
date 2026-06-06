@@ -109,10 +109,19 @@ def build_intraday_message(d):
     vwap_display = f"{vwap} ({vwap_pos})" if is_active(vwap_pos) else f"{vwap}"
 
     # Emoji based on already-escaped ema_rel (uses ﹥ ﹤ now)
-    ema_icon = ("🟢" if "CMP﹥E9﹥E24﹥E39" == ema_rel
-                else "🔴" if "CMP﹤E9﹤E24﹤E39" == ema_rel
-                else "🟠" if ema_rel.startswith("CMP﹥")
-                else "🟡")
+    ema_icon = ("🟢" if ema_rel == "BULL STACK"
+                else "🔴" if ema_rel == "BEAR STACK"
+                else "🟠" if "BULL" in ema_rel
+                else "🟡" if "BEAR" in ema_rel
+                else "⚪")
+    ema_labels = [
+        ("CMP",  float(close_p)  if close_p  != "N/A" else 0),
+        ("E9",   float(ema9_v)   if ema9_v   != "N/A" else 0),
+        ("E24",  float(ema24_v)  if ema24_v  != "N/A" else 0),
+        ("E39",  float(ema39_v)  if ema39_v  != "N/A" else 0),
+    ]
+    ema_sorted = sorted(ema_labels, key=lambda x: x[1], reverse=True)
+    ema_rank   = " ﹥ ".join(f"{lbl}:{val:.1f}" for lbl, val in ema_sorted)
 
     if str(trail_hit).startswith("YES"):
         why = f" ({stop_reason})" if is_active(stop_reason) else ""
@@ -150,6 +159,8 @@ def build_intraday_message(d):
         f"ATR  : {atr}\n"
         f"{ema_icon} EMA  : {ema_rel}\n"
         f"   E9:{ema9_v} | E24:{ema24_v} | E39:{ema39_v}\n"
+        f"{ema_icon} EMA  : {ema_rel}\n"
+        f"   {ema_rank}\n"
         f"━━━━━\n"
         f"{trail_block}"
         f"📦 Lots : {lots}  |  Risk/lot : {cur}{rpl}\n"
