@@ -54,14 +54,6 @@ def build_intraday_message(d):
     action     = d.get("action",      "N/A")
     direction  = d.get("direction",   "N/A")
     intensity  = d.get("intensity",   "N/A")
-    ema_rel   = d.get("ema_rel", "N/A")
-ema9_v    = d.get("ema9",    "N/A")
-ema24_v   = d.get("ema24",   "N/A")
-ema39_v   = d.get("ema39",   "N/A")
-
-ema_icon = ("🟢" if "CMP>EMA9>EMA24" in ema_rel
-            else "🔴" if "CMP<EMA9<EMA24" in ema_rel
-            else "🟡")
 
     orb        = d.get("orb",         "N/A")
     orb_h      = d.get("orbhigh",     "N/A")
@@ -81,28 +73,28 @@ ema_icon = ("🟢" if "CMP>EMA9>EMA24" in ema_rel
     sl         = d.get("sl",          "N/A")
     atr        = d.get("atr",         "N/A")
 
-    # ── Trail SL fields — these are the ACTUAL keys the Pine v4 alert sends ──
-    # (the previous version looked for 'trail_dist'/'trail_peak' which the
-    #  script never emitted, so the trail block was always dead.)
-    trail_locked  = d.get("trail_dist_locked",  "N/A")   # active-trade lock
-    trail_current = d.get("trail_dist_current", "N/A")   # live computed dist
+    trail_locked  = d.get("trail_dist_locked",  "N/A")
+    trail_current = d.get("trail_dist_current", "N/A")
     trail_floor   = d.get("trail_min_floor",    "N/A")
     trail_peak    = d.get("trail_peak",         "N/A")
     vol_factor    = d.get("volatility_factor",  "N/A")
     atr_ratio     = d.get("atr_ratio",          "N/A")
-    trail_hit     = d.get("trail_hit",          "NO")    # "YES — EXIT" or "NO"
-    # ── v5 dynamic-stop fields ──
+    trail_hit     = d.get("trail_hit",          "NO")
     stop_line     = d.get("stop_line",          "N/A")
     stop_dist     = d.get("stop_dist",          "N/A")
-    breakeven     = d.get("breakeven",          "N/A")   # ARMED / NO / NA
-    stop_reason   = d.get("stop_reason",        "N/A")   # TRAIL / BREAKEVEN+
+    breakeven     = d.get("breakeven",          "N/A")
+    stop_reason   = d.get("stop_reason",        "N/A")
     prem_risk     = d.get("prem_risk_per_lot",  "N/A")
     chop_factor   = d.get("chop_factor",        "N/A")
+
+    ema_rel  = d.get("ema_rel", "N/A")
+    ema9_v   = d.get("ema9",    "N/A")
+    ema24_v  = d.get("ema24",   "N/A")
+    ema39_v  = d.get("ema39",   "N/A")
 
     ist = pytz.timezone("Asia/Kolkata")
     now = datetime.now(ist).strftime("%H:%M IST, %d %b %Y")
 
-    # ── Action icon (covers CE/PE and CALL/PUT vocabularies) ──
     action_icons = {
         "BUY CE": "🟢", "BUY CALL": "🟢",
         "BUY PE": "🔴", "BUY PUT": "🔴",
@@ -117,7 +109,6 @@ ema_icon = ("🟢" if "CMP>EMA9>EMA24" in ema_rel
 
     adx_str = f"{adx} {'▲' if adx_rising == 'YES' else '▼' if adx_rising == 'NO' else ''}".strip()
 
-    # ── Chop regime label (Pine already labels it, but recompute defensively) ──
     try:
         cv = float(chop)
         chop_label = "TRENDING" if cv < 38.2 else "CHOPPY" if cv > 61.8 else "MIXED"
@@ -127,13 +118,14 @@ ema_icon = ("🟢" if "CMP>EMA9>EMA24" in ema_rel
 
     vwap_display = f"{vwap} ({vwap_pos})" if is_active(vwap_pos) else f"{vwap}"
 
-    # ── Dynamic Stop block (v5) — LIVE ─────────────────────────
-    # Pine sends trail_hit = "YES — EXIT" on the exit bar.
+    ema_icon = ("🟢" if "CMP>EMA9>EMA24" in ema_rel
+                else "🔴" if "CMP<EMA9<EMA24" in ema_rel
+                else "🟡")
+
     if str(trail_hit).startswith("YES"):
         why = f" ({stop_reason})" if is_active(stop_reason) else ""
         trail_block = f"🛑 <b>STOP HIT{why} — EXIT ALL LOTS NOW</b>\n"
     elif is_active(stop_line) and is_active(trail_peak):
-        # Active trade: show stop level, distance, breakeven flag, adapt factors
         be = " 🔒BE" if str(breakeven).upper() == "ARMED" else ""
         vf = f" vol×{vol_factor}" if is_active(vol_factor) else ""
         cf = f" chop×{chop_factor}" if is_active(chop_factor) else ""
@@ -142,7 +134,6 @@ ema_icon = ("🟢" if "CMP>EMA9>EMA24" in ema_rel
         trail_block = (f"📍 Stop @ <b>{stop_line}</b>{be}  (dist {dist} pts{vf}{cf})\n"
                        f"   peak {trail_peak}{risk}\n")
     elif is_active(trail_current):
-        # No active trade: what the stop distance WOULD be on entry
         floor = f" (floor {trail_floor})" if is_active(trail_floor) else ""
         trail_block = f"📐 Stop (idle): {trail_current} pts{floor}\n"
     else:
@@ -168,14 +159,11 @@ ema_icon = ("🟢" if "CMP>EMA9>EMA24" in ema_rel
         f"{ema_icon} EMA  : {ema_rel}\n"
         f"   {ema9_v} / {ema24_v} / {ema39_v}\n"
         f"━━━━━\n"
-        f"━━━━━\n"
         f"{trail_block}"
         f"📦 Lots : {lots}  |  Risk/lot : {cur}{rpl}\n"
         f"🛡 SL   : {cur}{sl}\n"
         f"━━━━━"
     )
-
-
 @app.route("/webhook/intraday", methods=["POST"])
 def webhook_intraday():
     try:
