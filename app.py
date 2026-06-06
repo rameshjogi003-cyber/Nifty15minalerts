@@ -118,11 +118,11 @@ def build_intraday_message(d):
 
     vwap_display = f"{vwap} ({vwap_pos})" if is_active(vwap_pos) else f"{vwap}"
 
-    ema_icon = ("🟢" if "CMP>EMA9>EMA24" in ema_rel
-                else "🔴" if "CMP<EMA9<EMA24" in ema_rel
-                else "🟡")
-
-    if str(trail_hit).startswith("YES"):
+ema_icon = ("🟢" if ema_rel == "CMP>E9>E24>E39"
+            else "🔴" if ema_rel == "CMP<E9<E24<E39"
+            else "🟠" if "CMP>" in ema_rel
+            else "🟡")
+        if str(trail_hit).startswith("YES"):
         why = f" ({stop_reason})" if is_active(stop_reason) else ""
         trail_block = f"🛑 <b>STOP HIT{why} — EXIT ALL LOTS NOW</b>\n"
     elif is_active(stop_line) and is_active(trail_peak):
