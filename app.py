@@ -54,6 +54,14 @@ def build_intraday_message(d):
     action     = d.get("action",      "N/A")
     direction  = d.get("direction",   "N/A")
     intensity  = d.get("intensity",   "N/A")
+    ema_rel   = d.get("ema_rel", "N/A")
+ema9_v    = d.get("ema9",    "N/A")
+ema24_v   = d.get("ema24",   "N/A")
+ema39_v   = d.get("ema39",   "N/A")
+
+ema_icon = ("🟢" if "CMP>EMA9>EMA24" in ema_rel
+            else "🔴" if "CMP<EMA9<EMA24" in ema_rel
+            else "🟡")
 
     orb        = d.get("orb",         "N/A")
     orb_h      = d.get("orbhigh",     "N/A")
@@ -157,6 +165,9 @@ def build_intraday_message(d):
         f"Score: {score}\n"
         f"Chop : {chop_disp}\n"
         f"ATR  : {atr}\n"
+        f"{ema_icon} EMA  : {ema_rel}\n"
+        f"   {ema9_v} / {ema24_v} / {ema39_v}\n"
+        f"━━━━━\n"
         f"━━━━━\n"
         f"{trail_block}"
         f"📦 Lots : {lots}  |  Risk/lot : {cur}{rpl}\n"
