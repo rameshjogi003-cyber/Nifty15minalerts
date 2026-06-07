@@ -158,8 +158,6 @@ def build_intraday_message(d):
         f"Chop : {chop_disp}\n"
         f"ATR  : {atr}\n"
         f"{ema_icon} EMA  : {ema_rel}\n"
-        f"   E9:{ema9_v} | E24:{ema24_v} | E39:{ema39_v}\n"
-        f"{ema_icon} EMA  : {ema_rel}\n"
         f"   {ema_rank}\n"
         f"━━━━━\n"
         f"{trail_block}"
