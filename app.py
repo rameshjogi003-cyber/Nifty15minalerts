@@ -296,9 +296,7 @@ def build_intraday_message(d):
         f"{box_block}"
         f"━━━━━\n"
         f"{trail_block}"
-        f"📦 Lots : {lots}  |  Risk/lot : {cur}{prem_risk}\n"
-        f"🛡 SL   : {cur}{sl}\n"
-        f"━━━━━"
+     
     )
 
 
